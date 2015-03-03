@@ -278,10 +278,10 @@ void printList(list<Assignment> assList)//teehee
 		for (list<Assignment>::iterator iter = assList.begin(); iter != assList.end(); ++iter)
 		{
 			//Print assigned date and description
-			cout << ' ' << iter->assigned << "   "
+			cout << ' ' << setw(8) << setfill('0') << right << iter->assigned << "   "
 				<< setfill(' ') << left
 				<< setw(24) << iter->description
-				<< setw(10) << iter->dueDate;
+				<< setw(8) << setfill('0') << right << iter->dueDate << "   ";
 			//Print status
 			if (iter->status == 0)
 				cout << "ASSIGNED";
