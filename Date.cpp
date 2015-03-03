@@ -105,9 +105,11 @@ Date& Date::operator=(const string& other)//Assign as string (i.e. date = "20150
 			this->d = stoi(other.substr(6, 2));
 			return *this;
 		}
-		else
+		else{
 			throw 1;
-		return *this;
+			cout << "Invalid Str!\n";
+			return *this;
+		}
 }
 bool Date::operator>(const Date& rhs){
 	if ((this->toInt()) > rhs.toInt())

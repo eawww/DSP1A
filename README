@@ -54,3 +54,5 @@ CHANGES
   Added save() function. Successfully writes both lists to file with no trailing whitespace.
   Added checkLate() function. Prints all late assignments and the total number of late assignments.
   Offset list printing by one space to distinguish from collumn headers.
+
+  20150302 - Finished edit function just in case John doesn't.

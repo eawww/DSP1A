@@ -37,10 +37,10 @@ void mainMenu(){
  		addSubmenu(completed, assigned);
  		break;
  		case '3': //Edit assignments
- 		editSubmenu();
+ 		editSubmenu(assigned);
  		break;
  		case '4': //Complete Assignments
- 		cout << "This is completeing assignments!\n";
+			completeSubmenu(assigned, completed);
  		break;
  		case '5': //Check late assignments
 			checkLate(completed);
@@ -59,22 +59,106 @@ void mainMenu(){
       }
   }
 }
-void editSubmenu(){
+void editSubmenu(list<Assignment>& assigned){
 	char menuSelection;
+	string tAssignmentStr;
+	Date tAssignmentDate;
+	list<Assignment>::iterator iter;
+	string editString;
+	bool breakCondition = false;
 
-  while (1){//dangerous retard code    
-  	cout << "\nGENERIC SUBMENU:\n1. Edit due date\t\t2. Edit description\n"
+  while (breakCondition == false){  
+	  
+  	cout << "\nEDIT ITEM:"
+		<< "\n1. Edit due date\t\t2. Edit description\n"
   	<< "0. Back\n";
 
   	cin >> menuSelection;
 
-  	switch (menuSelection){
-  		case '1':
-  		cout << "This is edit due date!\n";
-  		break;
-  		case '2':
-  		cout << "This is edit description";
-  		break;
+	switch (menuSelection){
+	case '1':{
+		//Edit due date
+		cin.clear();
+		cin.ignore(256, '\n');
+		printList(assigned);
+		cout << "Please enter assigned date of assignment you wish to edit: ";
+		getline(cin, tAssignmentStr);
+		if (isValidStr(tAssignmentStr)){
+			tAssignmentDate = tAssignmentStr; //convert string to date object
+		}
+		else{
+			cout << "Invalid date!\n";
+			continue;
+		}
+		//Detect whether or not assignment with specified date exists in list
+		if (!assDateExists(assigned, tAssignmentDate)){
+			cout << "No assignment with specified date found in Assigned list.\n";
+			continue;
+		}
+		else{
+			for (iter = assigned.begin(); iter != assigned.end(); ++iter){
+				if (iter->assigned == tAssignmentDate)
+					break; //break when iterator points to correct item
+			}
+		}
+		//cin.ignore(256, '\n');
+		cout << "Please enter new due date: ";
+		getline(cin, editString);
+		if (isValidStr(editString))
+		{
+			tAssignmentDate = editString;
+			if (!(tAssignmentDate > iter->assigned)){
+				cout << "Due date must be after assigned date!";
+				break;
+			}
+			cout << "Due date changed from " << iter->dueDate;
+			iter->dueDate = tAssignmentDate;
+			cout << " to " << iter->dueDate << "\n";
+			return;//exit editSubmenu
+		}
+		else{
+			cout << "Invalid date!\n";
+		}
+		break;
+	}
+	case '2':{
+		
+		printList(assigned);
+		cin.ignore(256, '\n');
+		cout << "Please enter assigned date of assignment you wish to edit: \n";
+		getline(cin, tAssignmentStr);
+		if (isValidStr(tAssignmentStr)){
+			tAssignmentDate = tAssignmentStr; //convert string to date object
+		}
+		else{
+			cout << "Invalid date! Press Enter to continue...\n";
+			continue;
+		}
+		//Detect whether or not assignment with specified date exists in list
+		if (!assDateExists(assigned, tAssignmentDate)){
+			cout << "No assignment with specified date found in Assigned list.\n";
+			continue;
+		}
+		else{
+			for (iter = assigned.begin(); iter != assigned.end(); ++iter){
+				if (iter->assigned == tAssignmentDate)
+					break; //break when iterator points to correct item
+			}
+		}
+		//cin.ignore(256, '\n');
+		cout << "Please enter new description (<25 char):\n ";
+		getline(cin, editString);
+		if (editString.length() < 25){
+			cout << "Description changed from \"" << iter->description
+				<< "\" to \"";
+			iter->description = editString;
+			cout << iter->description << "\"!\n";
+		}
+		else{
+			cout << "Description too long. Please use 24 characters or less.\n";
+		}
+		break;
+	}
   		case '0':
         return;//exit to previous menu
         default:
@@ -126,10 +210,10 @@ void addSubmenu(list<Assignment>& completed, list<Assignment>& assigned){
 
     switch (menuSelection){
     	case '1':
-			addAssignment(completed, 1);
+			addAssignment(completed, assigned, 1);
     	break;
 		case '2':{
-			addAssignment(assigned, 0);
+			addAssignment(assigned, completed, 0);
 		}
     	break;
     	case '0':
@@ -189,7 +273,7 @@ void printList(list<Assignment> assList)//teehee
 	}
 	else
 	{	//print collumn headers
-		cout << "ASSIGNED   DESCRIPTION             DUE       COMPLETED  STATUS\n";
+		cout << "ASSIGNED   DESCRIPTION             DUE       STATUS\n";
 		//iterate through list printing and stuff.
 		for (list<Assignment>::iterator iter = assList.begin(); iter != assList.end(); ++iter)
 		{
@@ -198,11 +282,6 @@ void printList(list<Assignment> assList)//teehee
 				<< setfill(' ') << left
 				<< setw(24) << iter->description
 				<< setw(10) << iter->dueDate;
-			//print completed date
-			if (iter->completed == 0)
-				cout << "N/A        ";
-			else
-				cout << iter->completed << "   ";
 			//Print status
 			if (iter->status == 0)
 				cout << "ASSIGNED";
@@ -257,7 +336,7 @@ string parseDate(string date)
 	return returnDate; //returns format YYYYMMDD
 }
 //assAssignment is dual function. Behaves differently depending on bool parameter.
-void addAssignment(list<Assignment>& theList, bool isCompleted){
+void addAssignment(list<Assignment>& theList, list<Assignment>& theOtherlist, bool isCompleted){
 	Date assigned, due;
 	string date, description, status;
 	char statChar;
@@ -278,8 +357,22 @@ void addAssignment(list<Assignment>& theList, bool isCompleted){
 			break;
 		}
 		else if (assDateExists(theList, date)){
-			cout << "An assignment with that date already exists in the list.\n";
+			cout << "An assignment with that date already exists in the ";
+			if (isCompleted){
+				cout << "Completed list!\n";
+			}
+			else
+				cout << "Assigned list!\n";
 			continue;
+		}
+		else if (assDateExists(theOtherlist, date)){
+			cout << "An assignment with that date already exists in the ";
+			if (isCompleted){
+				cout << "Assigned list!\n";
+			}
+			else{
+				cout << "Completed list!\n";
+			}
 		}
 		else{
 			cout << "Invalid date. Please try again.\n ";
@@ -424,7 +517,7 @@ bool isValidStr(const string str){//tests validity of string passed as date.
 }
 bool assDateExists(list<Assignment> theList, Date date){
 	for (list<Assignment>::iterator iter = theList.begin(); iter != theList.end(); ++iter){
-		if (iter->dueDate == date)
+		if (iter->assigned == date)
 			return true;
 	}
 	return false;
@@ -470,4 +563,97 @@ void checkLate(list<Assignment> completed){
 		}
 	}
 	cout << count << " late assignments found.\n";
+}
+void completeSubmenu(list<Assignment>& assigned, list<Assignment>& completed){
+	bool breakCondition = false, inserted = false;
+	string completeString, targetString;
+	Date completeDate, targetDate;
+	list<Assignment>::iterator assIter, compIter;
+	Assignment tempAss;
+
+	cin.ignore(256, '\n');
+	cin.clear();
+
+	while (breakCondition == false){
+		printList(assigned);
+		cout << "Please enter assigned date of assignment to be completed\n"
+			<< "or type \"0\" to exit to previous menu.\n";
+		getline(cin, targetString);
+		//exit condition
+		if (targetString == "0"){
+			breakCondition = true;
+			continue;
+		}
+		//ensure user input is a valid date
+		if (isValidStr(targetString)){
+			targetDate = targetString;
+		}
+		else{
+			cout << "Invalid date!\n";
+			continue;
+		}
+		//ensure item exists in assigned list
+		if (!assDateExists(assigned, targetDate)){
+			cout << "No assignment with specified date found in Assigned list.\n";
+			continue;
+		}
+		for (assIter = assigned.begin(); assIter != assigned.end(); ++assIter)
+		{
+			if (assIter->assigned == targetDate){
+				break;//break once target object is found
+			}
+		}
+		cout << "Completing assignment \"" << assIter->description << "\".\n"
+			<< "Please enter completion date: ";
+		getline(cin, completeString);
+		//ensure user input is valid date
+		if (isValidStr(completeString)){
+			completeDate = completeString;
+		}
+		else{
+			cout << "Invalid date!";
+			continue;
+		}
+		//ensure complete date is greater than assigned date
+		if (!(completeDate > assIter->assigned)){
+			cout << "Complete date must be greater than assigned date!\n";
+			continue;
+		}
+		//if all criteria satisfied, insert assignment into completed list
+		//but first, copy the assignment object manually for some reason
+		tempAss.assigned = assIter->assigned;
+		tempAss.description = assIter->description;
+		tempAss.dueDate = assIter->dueDate;
+		if (completeDate > assIter->dueDate)//determine if late
+			tempAss.status = Assignment::Status::LATE;
+		else{
+			tempAss.status = Assignment::Status::COMPLETED;
+		}
+		for (compIter = completed.begin(); compIter != completed.end(); ++compIter){
+			if (compIter->assigned > tempAss.assigned){
+				completed.insert(compIter, tempAss);
+				inserted = true;
+				cout << "Assignment \"" << tempAss.description << "\" completed ";
+				if (tempAss.status == Assignment::Status::LATE)
+					cout << " LATE!\n";
+				else
+					cout << " ON TIME!\n";
+				break;
+			}
+		}
+		//if assignment is to be the last item in the list
+		if (inserted == false){
+			completed.push_back(tempAss);
+			inserted = true;
+			cout << "Assignment \"" << tempAss.description << "\" completed ";
+			if (tempAss.status == Assignment::Status::LATE)
+				cout << " LATE!\n";
+			else
+				cout << " ON TIME!\n";
+		}
+		//This is also where we'll erase the assignment from the assigned list
+		assigned.erase(assIter);
+		break;
+	}
+	
 }
